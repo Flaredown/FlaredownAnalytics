@@ -1,4 +1,4 @@
-from fdanalytics.api import app
+from fdanalytics.app import app
 
 
 if __name__ == "__main__":
