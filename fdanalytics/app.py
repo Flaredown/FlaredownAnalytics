@@ -36,4 +36,12 @@ class EntryAPI(Resource):
             } for treatment in entry["treatments"]],
         }
 
+
+class UserAPI(Resource):
+    def get(self, user_id):
+        user = list(db.entries.find({"user_id": user_id}))
+        return {"user_id": user_id, "entries": len(user)}
+
+
 api.add_resource(EntryAPI, "/analytics/api/v1.0/entry")
+api.add_resource(UserAPI, "/analytics/api/v1.0/user/<int:user_id>")
