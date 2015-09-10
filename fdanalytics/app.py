@@ -73,14 +73,14 @@ class UserAPI(Resource):
 
         return {
             "user_id": user_id,
-            "settings": user_entries[-1]["settings"] if len(user_entries) > 0 else None,
+            "settings": user_entries[-1].get("settings") if len(user_entries) > 0 else None,
             "num_entries": len(user_entries),
-            "first_entry_date": _format_date(user_entries[0]["date"]) if len(user_entries) > 0 else None,
-            "last_entry_date": _format_date(user_entries[-1]["date"]) if len(user_entries) > 0 else None,
+            "first_entry_date": user_entries[0]["date"] if len(user_entries) > 0 else None,
+            "last_entry_date": user_entries[-1]["date"] if len(user_entries) > 0 else None,
         }
 
 
 api.add_resource(EntryListAPI, "/analytics/api/v1.0/entries/")
 api.add_resource(EntryAPI, "/analytics/api/v1.0/entries/<entry_id>/")
 
-api.add_resource(UserAPI, "/analytics/api/v1.0/users/<int:user_id>/")
+api.add_resource(UserAPI, "/analytics/api/v1.0/users/<user_id>/")
