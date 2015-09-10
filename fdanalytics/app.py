@@ -24,21 +24,19 @@ class EntryListAPI(Resource):
             "_id": to_json(entry["_id"]),
             "user_id": entry["user_id"],
             "date": entry["date"],
-            "settings": entry["settings"],
-            "conditions": entry["conditions"],
-            "symptoms": entry["symptoms"],
+            "settings": entry.get("settings"),
+            "conditions": entry.get("conditions"),
+            "symptoms": entry.get("symptoms"),
             "responses": [{
                 "name": response["name"],
                 "value": response["value"],
                 "catalog": response["catalog"],
             } for response in entry["responses"]],
-            "conditions": entry["conditions"],
-            "symptoms": entry["symptoms"],
             "treatments": [{
                 "name": treatment["name"],
                 "quantity": treatment["quantity"],
                 "unit": treatment["unit"],
-                "repetition": treatment["repetition"],
+                "repetition": treatment.get("repetition"),
             } for treatment in entry["treatments"]],
         }
 
@@ -46,26 +44,24 @@ class EntryListAPI(Resource):
 class EntryAPI(Resource):
     def get(self, entry_id):
         entry = db.entries.find_one({"_id": entry_id})
-        # replace with ObjectId(entry_id) when we're not stuck with couch _ids
+        # TODO: replace with ObjectId(entry_id) when we're not stuck with couch _ids
         return {
             "_id": to_json(entry["_id"]),
             "user_id": entry["user_id"],
             "date": entry["date"],
-            "settings": entry["settings"],
-            "conditions": entry["conditions"],
-            "symptoms": entry["symptoms"],
+            "settings": entry.get("settings"),
+            "conditions": entry.get("conditions"),
+            "symptoms": entry.get("symptoms"),
             "responses": [{
                 "name": response["name"],
                 "value": response["value"],
                 "catalog": response["catalog"],
             } for response in entry["responses"]],
-            "conditions": entry["conditions"],
-            "symptoms": entry["symptoms"],
             "treatments": [{
                 "name": treatment["name"],
                 "quantity": treatment["quantity"],
                 "unit": treatment["unit"],
-                "repetition": treatment["repetition"],
+                "repetition": treatment.get("repetition"),
             } for treatment in entry["treatments"]],
         }
 
