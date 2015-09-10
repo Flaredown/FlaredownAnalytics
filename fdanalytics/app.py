@@ -11,13 +11,17 @@ db = connect(app.config)
 api = Api(app)
 
 
+def _format_date(dt):
+    return dt.strftime("%Y-%m-%d")
+
+
 class EntryListAPI(Resource):
     def get(self):
         entry = db.entries.find_one()
         return {
             "_id": to_json(entry["_id"]),
             "user_id": entry["user_id"],
-            "date": to_json(entry["date"]),
+            "date": _format_date(entry["date"]),
             "settings": entry["settings"],
             "conditions": entry["conditions"],
             "symptoms": entry["symptoms"],
@@ -45,8 +49,8 @@ class UserAPI(Resource):
         return {
             "user_id": user_id,
             "num_entries": len(user_entries),
-            "first_entry_date": to_json(user_entries[0]["date"]) if len(user_entries) > 0 else None,
-            "last_entry_date": to_json(user_entries[-1]["date"]) if len(user_entries) > 0 else None,
+            "first_entry_date": _format_date(user_entries[0]["date"]) if len(user_entries) > 0 else None,
+            "last_entry_date": _format_date(user_entries[-1]["date"]) if len(user_entries) > 0 else None,
         }
 
 
