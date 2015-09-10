@@ -1,3 +1,4 @@
+from bson.objectid import ObjectId
 from flask import Flask
 from flask_restful import Api, Resource
 from .common.db import connect
@@ -41,6 +42,32 @@ class EntryListAPI(Resource):
         }
 
 
+class EntryAPI(Resource):
+    def get(self, entry_id):
+        entry = db.entries.find_one({"_id": ObjectId(entry_id)})
+        return {
+            "_id": to_json(entry["_id"]),
+            "user_id": entry["user_id"],
+            "date": _format_date(entry["date"]),
+            "settings": entry["settings"],
+            "conditions": entry["conditions"],
+            "symptoms": entry["symptoms"],
+            "responses": [{
+                "name": response["name"],
+                "value": response["value"],
+                "catalog": response["catalog"],
+            } for response in entry["responses"]],
+            "conditions": entry["conditions"],
+            "symptoms": entry["symptoms"],
+            "treatments": [{
+                "name": treatment["name"],
+                "quantity": treatment["quantity"],
+                "unit": treatment["unit"],
+                "repetition": treatment["repetition"],
+            } for treatment in entry["treatments"]],
+        }
+
+
 class UserAPI(Resource):
     def get(self, user_id):
         user_entries = list(db.entries.find({"user_id": user_id})
@@ -48,11 +75,14 @@ class UserAPI(Resource):
 
         return {
             "user_id": user_id,
+            "settings": user_entries[-1]["settings"] if len(user_entries) > 0 else None,
             "num_entries": len(user_entries),
             "first_entry_date": _format_date(user_entries[0]["date"]) if len(user_entries) > 0 else None,
             "last_entry_date": _format_date(user_entries[-1]["date"]) if len(user_entries) > 0 else None,
         }
 
 
-api.add_resource(EntryListAPI, "/analytics/api/v1.0/entries")
-api.add_resource(UserAPI, "/analytics/api/v1.0/users/<int:user_id>")
+api.add_resource(EntryListAPI, "/analytics/api/v1.0/entries/")
+api.add_resource(EntryAPI, "/analytics/api/v1.0/entries/<entry_id>/")
+
+api.add_resource(UserAPI, "/analytics/api/v1.0/users/<int:user_id>/")
