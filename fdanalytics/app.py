@@ -11,7 +11,7 @@ db = connect(app.config)
 api = Api(app)
 
 
-class EntryAPI(Resource):
+class EntryListAPI(Resource):
     def get(self):
         entry = db.entries.find_one()
         return {
@@ -39,9 +39,16 @@ class EntryAPI(Resource):
 
 class UserAPI(Resource):
     def get(self, user_id):
-        user = list(db.entries.find({"user_id": user_id}))
-        return {"user_id": user_id, "entries": len(user)}
+        user_entries = list(db.entries.find({"user_id": user_id})
+                                      .sort("date", 1))
+
+        return {
+            "user_id": user_id,
+            "num_entries": len(user_entries),
+            "first_entry_date": to_json(user_entries[0]["date"]) if len(user_entries) > 0 else None,
+            "last_entry_date": to_json(user_entries[-1]["date"]) if len(user_entries) > 0 else None,
+        }
 
 
-api.add_resource(EntryAPI, "/analytics/api/v1.0/entry")
-api.add_resource(UserAPI, "/analytics/api/v1.0/user/<int:user_id>")
+api.add_resource(EntryListAPI, "/analytics/api/v1.0/entries")
+api.add_resource(UserAPI, "/analytics/api/v1.0/users/<int:user_id>")
