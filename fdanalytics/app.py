@@ -12,8 +12,14 @@ db = connect(app.config)
 api = Api(app)
 
 
-def _format_date(dt):
-    return dt.strftime("%Y-%m-%d")
+def _safe_index(list, i, default_value=None):
+    try:
+        el = list[i]
+    except IndexError:
+        el = default_value
+
+    return el
+
 
 
 class EntryListAPI(Resource):
@@ -73,10 +79,10 @@ class UserAPI(Resource):
 
         return {
             "user_id": user_id,
-            "settings": user_entries[-1].get("settings") if len(user_entries) > 0 else None,
+            "settings": _safe_index(user_entries, -1, default_value={}).get("settings"),
             "num_entries": len(user_entries),
-            "first_entry_date": user_entries[0]["date"] if len(user_entries) > 0 else None,
-            "last_entry_date": user_entries[-1]["date"] if len(user_entries) > 0 else None,
+            "first_entry_date": _safe_index(user_entries, 0, default_value={}).get("date"),
+            "last_entry_date": _safe_index(user_entries, -1, default_value={}).get("date"),
         }
 
 
