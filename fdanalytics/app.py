@@ -26,7 +26,7 @@ class EntryListAPI(Resource):
         return [{
             "_id": str(entry["_id"]),
             "user_id": entry.get("user_id"),
-            "date": entry.get("date"),
+            "date": entry["date"],
         } for entry in db.entries.find().sort("date", 1)]
 
 
@@ -36,8 +36,8 @@ class EntryAPI(Resource):
         # TODO: replace with ObjectId(entry_id) when we're not stuck with couch _ids
         return {
             "_id": str(entry["_id"]),
-            "user_id": entry.get("user_id"),
-            "date": entry.get("date"),
+            "user_id": entry["user_id"],
+            "date": entry["date"],
             "settings": entry.get("settings"),
             "conditions": entry.get("conditions"),
             "symptoms": entry.get("symptoms"),
@@ -53,6 +53,11 @@ class EntryAPI(Resource):
                 "repetition": treatment.get("repetition"),
             } for treatment in entry.get("treatments")],
         }
+
+
+class UserListAPI(Resource):
+    def get(self):
+        return db.entries.distinct("user_id")
 
 
 class UserAPI(Resource):
@@ -72,4 +77,5 @@ class UserAPI(Resource):
 api.add_resource(EntryListAPI, "/analytics/api/v1.0/entries/")
 api.add_resource(EntryAPI, "/analytics/api/v1.0/entries/<entry_id>/")
 
+api.add_resource(UserListAPI, "/analytics/api/v1.0/users/")
 api.add_resource(UserAPI, "/analytics/api/v1.0/users/<user_id>/")
