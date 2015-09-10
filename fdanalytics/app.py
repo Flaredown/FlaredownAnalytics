@@ -21,30 +21,13 @@ def _safe_index(list, i, default_value=None):
     return el
 
 
-
 class EntryListAPI(Resource):
     def get(self):
-        entry = db.entries.find_one()
-
-        return {
-            "_id": to_json(entry["_id"]),
-            "user_id": entry["user_id"],
-            "date": entry["date"],
-            "settings": entry.get("settings"),
-            "conditions": entry.get("conditions"),
-            "symptoms": entry.get("symptoms"),
-            "responses": [{
-                "name": response["name"],
-                "value": response["value"],
-                "catalog": response["catalog"],
-            } for response in entry["responses"]],
-            "treatments": [{
-                "name": treatment["name"],
-                "quantity": treatment["quantity"],
-                "unit": treatment["unit"],
-                "repetition": treatment.get("repetition"),
-            } for treatment in entry["treatments"]],
-        }
+        return [{
+            "_id": str(entry["_id"]),
+            "user_id": entry.get("user_id"),
+            "date": entry.get("date"),
+        } for entry in db.entries.find().sort("date", 1)]
 
 
 class EntryAPI(Resource):
