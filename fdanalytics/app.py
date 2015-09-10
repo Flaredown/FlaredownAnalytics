@@ -52,23 +52,23 @@ class EntryAPI(Resource):
         entry = db.entries.find_one({"_id": entry_id})
         # TODO: replace with ObjectId(entry_id) when we're not stuck with couch _ids
         return {
-            "_id": to_json(entry["_id"]),
-            "user_id": entry["user_id"],
-            "date": entry["date"],
+            "_id": str(entry["_id"]),
+            "user_id": entry.get("user_id"),
+            "date": entry.get("date"),
             "settings": entry.get("settings"),
             "conditions": entry.get("conditions"),
             "symptoms": entry.get("symptoms"),
             "responses": [{
-                "name": response["name"],
-                "value": response["value"],
-                "catalog": response["catalog"],
-            } for response in entry["responses"]],
+                "name": response.get("name"),
+                "value": response.get("value"),
+                "catalog": response.get("catalog"),
+            } for response in entry.get("responses")],
             "treatments": [{
-                "name": treatment["name"],
-                "quantity": treatment["quantity"],
-                "unit": treatment["unit"],
+                "name": treatment.get("name"),
+                "quantity": treatment.get("quantity"),
+                "unit": treatment.get("unit"),
                 "repetition": treatment.get("repetition"),
-            } for treatment in entry["treatments"]],
+            } for treatment in entry.get("treatments")],
         }
 
 
