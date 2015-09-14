@@ -3,7 +3,6 @@ from bson.objectid import ObjectId
 from flask import Flask
 from flask_restful import Api, Resource
 from .common.db import connect
-from .common.util import to_json
 
 app = Flask(__name__)
 app.config.from_pyfile("../config.py")
@@ -56,6 +55,11 @@ class EntryAPI(Resource):
         }
 
 
+class SymptomListAPI(Resource):
+    def get(self):
+        return db.entries.distinct("symptoms")
+
+
 class TreatmentListAPI(Resource):
     def get(self):
         return db.entries.distinct("treatments.name")
@@ -67,7 +71,7 @@ class TreatmentAPI(Resource):
 
         treatment_name_ignorecase = re.compile(treatment_name, re.IGNORECASE)
 
-        count_distinct_units = [
+        unit_stats = [
             {"$unwind": "$treatments"},
             {"$match": {"treatments.name": treatment_name_ignorecase}},
             {"$group": {"_id": "$treatments.unit",
@@ -79,7 +83,7 @@ class TreatmentAPI(Resource):
             "name": treatment_name.lower(),
             "num_entries": db.entries.count({"treatments.name": treatment_name_ignorecase}),
             "num_users": len(db.entries.distinct("user_id", {"treatments.name": treatment_name_ignorecase})),
-            "units": list(db.entries.aggregate(pipeline=count_distinct_units))
+            "units": list(db.entries.aggregate(pipeline=unit_stats))
         }
 
 
@@ -104,6 +108,8 @@ class UserAPI(Resource):
 
 api.add_resource(EntryListAPI, "/analytics/api/v1.0/entries/")
 api.add_resource(EntryAPI, "/analytics/api/v1.0/entries/<entry_id>/")
+
+api.add_resource(SymptomListAPI, "/analytics/api/v1.0/symptoms/")
 
 api.add_resource(TreatmentListAPI, "/analytics/api/v1.0/treatments/")
 api.add_resource(TreatmentAPI, "/analytics/api/v1.0/treatments/<treatment_name>")
