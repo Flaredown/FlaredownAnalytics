@@ -21,10 +21,19 @@ if __name__ == "__main__":
 
     # entries.remove()
 
-    with open("dump.json") as f:
-        couch_entries = [row["doc"] for row in json.load(f)["rows"]]
+    # with open("dump.json") as f:
+    #     couch_entries = [row["doc"] for row in json.load(f)["rows"]]
 
-        entries.insert_many(couch_entries)
+    #     for entry in couch_entries:
+    #         del entry["_id"]
+    #         del entry["_rev"]
+
+    #         try:
+    #             entry["user_id"] = int(entry["user_id"])
+    #         except:
+    #             entry["user_id"] = 9999
+
+    #     entries.insert_many(couch_entries)
 
     # results = entries.distinct("treatments.name")
 
