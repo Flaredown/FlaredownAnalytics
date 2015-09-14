@@ -1,3 +1,4 @@
+import re
 from bson.objectid import ObjectId
 from flask import Flask
 from flask_restful import Api, Resource
@@ -55,6 +56,33 @@ class EntryAPI(Resource):
         }
 
 
+class TreatmentListAPI(Resource):
+    def get(self):
+        return db.entries.distinct("treatments.name")
+
+
+class TreatmentAPI(Resource):
+    def get(self, treatment_name):
+        # TODO: len(distinct) won't scale well, use aggregation pipeline instead
+
+        treatment_name_ignorecase = re.compile(treatment_name, re.IGNORECASE)
+
+        count_distinct_units = [
+            {"$unwind": "$treatments"},
+            {"$match": {"treatments.name": treatment_name_ignorecase}},
+            {"$group": {"_id": "$treatments.unit",
+                        "num_entries": {"$sum": 1},
+                        "avg_dose": {"$avg": {"$multiply": ["$treatments.quantity", "$treatments.repetition"]}}}}
+        ]
+
+        return {
+            "name": treatment_name.lower(),
+            "num_entries": db.entries.count({"treatments.name": treatment_name_ignorecase}),
+            "num_users": len(db.entries.distinct("user_id", {"treatments.name": treatment_name_ignorecase})),
+            "units": list(db.entries.aggregate(pipeline=count_distinct_units))
+        }
+
+
 class UserListAPI(Resource):
     def get(self):
         return db.entries.distinct("user_id")
@@ -76,6 +104,9 @@ class UserAPI(Resource):
 
 api.add_resource(EntryListAPI, "/analytics/api/v1.0/entries/")
 api.add_resource(EntryAPI, "/analytics/api/v1.0/entries/<entry_id>/")
+
+api.add_resource(TreatmentListAPI, "/analytics/api/v1.0/treatments/")
+api.add_resource(TreatmentAPI, "/analytics/api/v1.0/treatments/<treatment_name>")
 
 api.add_resource(UserListAPI, "/analytics/api/v1.0/users/")
 api.add_resource(UserAPI, "/analytics/api/v1.0/users/<user_id>/")
