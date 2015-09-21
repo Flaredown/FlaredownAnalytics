@@ -11,6 +11,147 @@ db = connect(app.config)
 
 api = Api(app)
 
+n_conditions = [
+    {
+        "$project": {
+            "nConditions": {"$size": {"$ifNull": ["$conditions", []]}}
+        }
+    },
+    {
+        "$project": {
+            "conditionsLowerBound": {
+                "$subtract": ["$nConditions", {"$mod": ["$nConditions", 1]}]
+            }
+        }
+    },
+    {
+        "$group": {
+            "_id": "$conditionsLowerBound",
+            "count": {"$sum": 1}
+        }
+    }
+]
+
+n_symptoms = [
+    {
+        "$project": {
+            "nSymptoms": {"$size": {"$ifNull": ["$symptoms", []]}}
+        }
+    },
+    {
+        "$project": {
+            "symptomsLowerBound": {
+                "$subtract": ["$nSymptoms", {"$mod": ["$nSymptoms", 1]}]
+            }
+        }
+    },
+    {
+        "$group": {
+            "_id": "$symptomsLowerBound",
+            "count": {"$sum": 1}
+        }
+    }
+]
+
+n_treatments = [
+    {
+        "$project": {
+            "nTreatments": {"$size": {"$ifNull": ["$treatments", []]}}
+        }
+    },
+    {
+        "$project": {
+            "treatmentsLowerBound": {
+                "$subtract": ["$nTreatments", {"$mod": ["$nTreatments", 1]}]
+            }
+        }
+    },
+    {
+        "$group": {
+            "_id": "$treatmentsLowerBound",
+            "count": {"$sum": 1}
+        }
+    }
+]
+
+top_conditions = [
+    {
+        "$unwind": "$conditions"
+    },
+    {
+        "$group": {
+            "_id": {
+                "user_id": "$user_id",
+            },
+            "count": {"$sum": 1},
+            "conditions": {"$addToSet": "$conditions"}
+        }
+    },
+    {
+        "$unwind": "$conditions"
+    },
+    {
+        "$group": {
+            "_id": {
+                "condition": "$conditions"
+            },
+            "count": {"$sum": 1}
+        }
+    }
+]
+
+top_symptoms = [
+    {
+        "$unwind": "$symptoms"
+    },
+    {
+        "$group": {
+            "_id": {
+                "user_id": "$user_id",
+            },
+            "count": {"$sum": 1},
+            "symptoms": {"$addToSet": "$symptoms"}
+        }
+    },
+    {
+        "$unwind": "$symptoms"
+    },
+    {
+        "$group": {
+            "_id": {
+                "symptom": "$symptoms"
+            },
+            "count": {"$sum": 1}
+        }
+    }
+]
+
+top_treatments = [
+    {
+        "$unwind": "$treatments"
+    },
+    {
+        "$group": {
+            "_id": {
+                "user_id": "$user_id",
+            },
+            "count": {"$sum": 1},
+            "treatments": {"$addToSet": "$treatments.name"}
+        }
+    },
+    {
+        "$unwind": "$treatments"
+    },
+    {
+        "$group": {
+            "_id": {
+                "treatment": "$treatments"
+            },
+            "count": {"$sum": 1}
+        }
+    }
+]
+
 
 def _safe_index(list, i, default_value=None):
     try:
@@ -23,29 +164,8 @@ def _safe_index(list, i, default_value=None):
 
 class ConditionListAPI(Resource):
     def get(self):
-        n_conditions = [
-            {
-                "$project": {
-                    "nConditions": {"$size": {"$ifNull": ["$conditions", []]}}
-                }
-            },
-            {
-                "$project": {
-                    "conditionsLowerBound": {
-                        "$subtract": ["$nConditions", {"$mod": ["$nConditions", 1]}]
-                    }
-                }
-            },
-            {
-                "$group": {
-                    "_id": "$conditionsLowerBound",
-                    "count": {"$sum": 1}
-                }
-            }
-        ]
         return {
-            "all": db.entries.distinct("conditions"),
-            "distribution": list(db.entries.aggregate(n_conditions))
+            "all": db.entries.distinct("conditions")
         }
 
 
@@ -85,59 +205,15 @@ class EntryAPI(Resource):
 
 class SymptomListAPI(Resource):
     def get(self):
-        n_symptoms = [
-            {
-                "$project": {
-                    "nSymptoms": {"$size": {"$ifNull": ["$symptoms", []]}}
-                }
-            },
-            {
-                "$project": {
-                    "symptomsLowerBound": {
-                        "$subtract": ["$nSymptoms", {"$mod": ["$nSymptoms", 1]}]
-                    }
-                }
-            },
-            {
-                "$group": {
-                    "_id": "$symptomsLowerBound",
-                    "count": {"$sum": 1}
-                }
-            }
-        ]
         return {
-            "all": db.entries.distinct("symptoms"),
-            "distribution": list(db.entries.aggregate(n_symptoms))
+            "all": db.entries.distinct("symptoms")
         }
 
 
 class TreatmentListAPI(Resource):
     def get(self):
-
-        n_treatments = [
-            {
-                "$project": {
-                    "nTreatments": {"$size": {"$ifNull": ["$treatments", []]}}
-                }
-            },
-            {
-                "$project": {
-                    "treatmentsLowerBound": {
-                        "$subtract": ["$nTreatments", {"$mod": ["$nTreatments", 1]}]
-                    }
-                }
-            },
-            {
-                "$group": {
-                    "_id": "$treatmentsLowerBound",
-                    "count": {"$sum": 1}
-                }
-            }
-        ]
-
         return {
-            "all": db.entries.distinct("treatments.name"),
-            "distribution": list(db.entries.aggregate(pipeline=n_treatments))
+            "all": db.entries.distinct("treatments.name")
         }
 
 
@@ -165,7 +241,15 @@ class TreatmentAPI(Resource):
 
 class UserListAPI(Resource):
     def get(self):
-        return db.entries.distinct("user_id")
+        return {
+            "user_ids": db.entries.distinct("user_id"),
+            "n_conditions": list(db.entries.aggregate(pipeline=n_conditions)),
+            "n_symptoms": list(db.entries.aggregate(pipeline=n_symptoms)),
+            "n_treatments": list(db.entries.aggregate(pipeline=n_treatments)),
+            "top_conditions": list(db.entries.aggregate(pipeline=top_conditions)),
+            "top_symptoms": list(db.entries.aggregate(pipeline=top_symptoms)),
+            "top_treatments": list(db.entries.aggregate(pipeline=top_treatments))
+        }
 
 
 class UserAPI(Resource):
@@ -180,6 +264,7 @@ class UserAPI(Resource):
             "first_entry_date": _safe_index(user_entries, 0, default_value={}).get("date"),
             "last_entry_date": _safe_index(user_entries, -1, default_value={}).get("date"),
         }
+
 
 api.add_resource(ConditionListAPI, "/analytics/api/v1.0/conditions/")
 
