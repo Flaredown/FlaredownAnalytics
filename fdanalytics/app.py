@@ -113,7 +113,32 @@ class SymptomListAPI(Resource):
 
 class TreatmentListAPI(Resource):
     def get(self):
-        return db.entries.distinct("treatments.name")
+
+        n_treatments = [
+            {
+                "$project": {
+                    "nTreatments": {"$size": {"$ifNull": ["$treatments", []]}}
+                }
+            },
+            {
+                "$project": {
+                    "treatmentsLowerBound": {
+                        "$subtract": ["$nTreatments", {"$mod": ["$nTreatments", 1]}]
+                    }
+                }
+            },
+            {
+                "$group": {
+                    "_id": "$treatmentsLowerBound",
+                    "count": {"$sum": 1}
+                }
+            }
+        ]
+
+        return {
+            "all": db.entries.distinct("treatments.name"),
+            "distribution": list(db.entries.aggregate(pipeline=n_treatments))
+        }
 
 
 class TreatmentAPI(Resource):
@@ -134,7 +159,7 @@ class TreatmentAPI(Resource):
             "name": treatment_name.lower(),
             "num_entries": db.entries.count({"treatments.name": treatment_name_ignorecase}),
             "num_users": len(db.entries.distinct("user_id", {"treatments.name": treatment_name_ignorecase})),
-            "units": list(db.entries.aggregate(pipeline=unit_stats))
+            "units": list(db.entries.aggregate(pipeline=unit_stats)),
         }
 
 
