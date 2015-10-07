@@ -39,34 +39,55 @@ if __name__ == "__main__":
 
     # print(list(results))
 
-    # results = entries.aggregate([
+    results = entries.aggregate([
+        {
+            "$unwind": "$conditions"
+        },
+        {
+            "$group": {
+                "_id": {
+                    "user_id": "$user_id",
+                },
+                "count": {"$sum": 1},
+                "conditions": {"$addToSet": "$conditions"}
+            }
+        },
+        {
+            "$unwind": "$conditions"
+        },
+        {
+            "$group": {
+                "_id": {
+                    "condition": "$conditions"
+                },
+                "count": {"$sum": 1}
+            }
+        }
+    ])
+
+    print(list(results))
+
+    # histo = entries.aggregate([
     #     {
-    #         "$unwind": "$conditions"
-    #     },
-    #     {
-    #         "$group": {
-    #             "_id": {
-    #                 "user_id": "$user_id",
-    #                 "sex": "$settings.sex"
-    #             },
-    #             "count": {"$sum": 1},
-    #             "conditions": {"$addToSet": "$conditions"}
+    #         "$project": {
+    #             "nConditions": {"$size": {"$ifNull": ["$conditions", []]}}
     #         }
     #     },
     #     {
-    #         "$unwind": "$conditions"
+    #         "$project": {
+    #             "conditionsLowerBound": {
+    #                 "$subtract": ["$nConditions", {"$mod": ["$nConditions", 1]}]
+    #             }
+    #         }
     #     },
     #     {
     #         "$group": {
-    #             "_id": {
-    #                 "sex": "$_id.sex",
-    #                 "condition": "$conditions"
-    #             },
+    #             "_id": "$conditionsLowerBound",
     #             "count": {"$sum": 1}
     #         }
     #     }
     # ])
 
-    # print(list(results))
+    # print(list(histo))
 
     client.close()
