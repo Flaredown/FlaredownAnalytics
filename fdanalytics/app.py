@@ -2,10 +2,12 @@ import re
 from bson.objectid import ObjectId
 from flask import Flask
 from flask_restful import Api, Resource
+from werkzeug.contrib.fixers import ProxyFix
 from .common.db import connect
 
 app = Flask(__name__)
 app.config.from_pyfile("../config.py")
+app.wsgi_app = ProxyFix(app.wsgi_app)
 
 db = connect(app.config)
 
