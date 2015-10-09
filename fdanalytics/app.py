@@ -111,6 +111,9 @@ top_conditions = [
     },
     {
         "$sort": {"count": -1}
+    },
+    {
+        "$limit": 10
     }
 ]
 
@@ -140,6 +143,9 @@ top_symptoms = [
     },
     {
         "$sort": {"count": -1}
+    },
+    {
+        "$limit": 10
     }
 ]
 
@@ -169,6 +175,9 @@ top_treatments = [
     },
     {
         "$sort": {"count": -1}
+    },
+    {
+        "$limit": 10
     }
 ]
 
