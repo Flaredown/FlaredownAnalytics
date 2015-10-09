@@ -15,6 +15,12 @@ api = Api(app)
 
 n_conditions = [
     {
+        "$group": {
+            "_id": "$user_id",
+            "conditions": {"$addToSet": "$conditions"}
+        }
+    },
+    {
         "$project": {
             "nConditions": {"$size": {"$ifNull": ["$conditions", []]}}
         }
@@ -39,6 +45,12 @@ n_conditions = [
 
 n_symptoms = [
     {
+        "$group": {
+            "_id": "$user_id",
+            "symptoms": {"$addToSet": "$symptoms"}
+        }
+    },
+    {
         "$project": {
             "nSymptoms": {"$size": {"$ifNull": ["$symptoms", []]}}
         }
@@ -62,6 +74,12 @@ n_symptoms = [
 ]
 
 n_treatments = [
+    {
+        "$group": {
+            "_id": "$user_id",
+            "treatments": {"$addToSet": "$treatments"}
+        }
+    },
     {
         "$project": {
             "nTreatments": {"$size": {"$ifNull": ["$treatments", []]}}
