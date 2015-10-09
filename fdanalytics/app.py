@@ -31,6 +31,9 @@ n_conditions = [
             "_id": "$conditionsLowerBound",
             "count": {"$sum": 1}
         }
+    },
+    {
+        "$sort": {"_id": 1}
     }
 ]
 
@@ -52,6 +55,9 @@ n_symptoms = [
             "_id": "$symptomsLowerBound",
             "count": {"$sum": 1}
         }
+    },
+    {
+        "$sort": {"_id": 1}
     }
 ]
 
@@ -73,6 +79,9 @@ n_treatments = [
             "_id": "$treatmentsLowerBound",
             "count": {"$sum": 1}
         }
+    },
+    {
+        "$sort": {"_id": 1}
     }
 ]
 
@@ -99,6 +108,9 @@ top_conditions = [
             },
             "count": {"$sum": 1}
         }
+    },
+    {
+        "$sort": {"count": -1}
     }
 ]
 
@@ -125,6 +137,9 @@ top_symptoms = [
             },
             "count": {"$sum": 1}
         }
+    },
+    {
+        "$sort": {"count": -1}
     }
 ]
 
@@ -151,6 +166,9 @@ top_treatments = [
             },
             "count": {"$sum": 1}
         }
+    },
+    {
+        "$sort": {"count": -1}
     }
 ]
 
