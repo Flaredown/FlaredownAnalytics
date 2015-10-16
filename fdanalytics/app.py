@@ -1,7 +1,7 @@
 import re
 from bson.objectid import ObjectId
 from flask import Flask
-from flask_restful import Api, Resource
+from flask_restful import Api, Resource, reqparse
 from werkzeug.contrib.fixers import ProxyFix
 from .common.db import connect
 
@@ -12,6 +12,11 @@ app.wsgi_app = ProxyFix(app.wsgi_app)
 db = connect(app.config)
 
 api = Api(app)
+
+
+def ignore_case(s):
+    return re.compile(s, re.IGNORECASE)
+
 
 n_conditions = [
     {
@@ -199,6 +204,12 @@ top_treatments = [
     }
 ]
 
+n_users = [
+    {
+        "$group": {"_id": "$user_id"}
+    }
+]
+
 
 def _safe_index(list, i, default_value=None):
     try:
@@ -268,11 +279,9 @@ class TreatmentAPI(Resource):
     def get(self, treatment_name):
         # TODO: len(distinct) won't scale well, use aggregation pipeline instead
 
-        treatment_name_ignorecase = re.compile(treatment_name, re.IGNORECASE)
-
         unit_stats = [
             {"$unwind": "$treatments"},
-            {"$match": {"treatments.name": treatment_name_ignorecase}},
+            {"$match": {"treatments.name": ignore_case(treatment_name)}},
             {"$group": {"_id": "$treatments.unit",
                         "num_entries": {"$sum": 1},
                         "avg_dose": {"$avg": {"$multiply": ["$treatments.quantity", "$treatments.repetition"]}}}}
@@ -280,22 +289,31 @@ class TreatmentAPI(Resource):
 
         return {
             "name": treatment_name.lower(),
-            "num_entries": db.entries.count({"treatments.name": treatment_name_ignorecase}),
-            "num_users": len(db.entries.distinct("user_id", {"treatments.name": treatment_name_ignorecase})),
+            "num_entries": db.entries.count({"treatments.name": ignore_case(treatment_name)}),
+            "num_users": len(db.entries.distinct("user_id", {"treatments.name": ignore_case(treatment_name)})),
             "units": list(db.entries.aggregate(pipeline=unit_stats)),
         }
 
 
 class UserListAPI(Resource):
     def get(self):
+        parser = reqparse.RequestParser()
+        parser.add_argument("condition")
+        args = parser.parse_args()
+
+        match = []
+
+        if args.get("condition"):
+            match.append({"$match": {"conditions": ignore_case(args.get("condition"))}})
+
         return {
-            "user_ids": db.entries.distinct("user_id"),
-            "n_conditions": list(db.entries.aggregate(pipeline=n_conditions)),
-            "n_symptoms": list(db.entries.aggregate(pipeline=n_symptoms)),
-            "n_treatments": list(db.entries.aggregate(pipeline=n_treatments)),
-            "top_conditions": list(db.entries.aggregate(pipeline=top_conditions)),
-            "top_symptoms": list(db.entries.aggregate(pipeline=top_symptoms)),
-            "top_treatments": list(db.entries.aggregate(pipeline=top_treatments))
+            "n_users": len(list(db.entries.aggregate(pipeline=match + n_users))),
+            "n_conditions": list(db.entries.aggregate(pipeline=match + n_conditions)),
+            "n_symptoms": list(db.entries.aggregate(pipeline=match + n_symptoms)),
+            "n_treatments": list(db.entries.aggregate(pipeline=match + n_treatments)),
+            "top_conditions": list(db.entries.aggregate(pipeline=match + top_conditions)),
+            "top_symptoms": list(db.entries.aggregate(pipeline=match + top_symptoms)),
+            "top_treatments": list(db.entries.aggregate(pipeline=match + top_treatments))
         }
 
 
