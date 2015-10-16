@@ -300,6 +300,7 @@ class UserListAPI(Resource):
         parser = reqparse.RequestParser()
         parser.add_argument("condition")
         parser.add_argument("symptom")
+        parser.add_argument("treatment")
         args = parser.parse_args()
 
         match = []
@@ -308,8 +309,8 @@ class UserListAPI(Resource):
             match.append({"$match": {"conditions": ignore_case(args.get("condition"))}})
         if args.get("symptom"):
             match.append({"$match": {"symptoms": ignore_case(args.get("symptom"))}})
-
-        print(match)
+        if args.get("treatment"):
+            match.append({"$match": {"treatments.name": ignore_case(args.get("treatment"))}})
 
         return {
             "n_users": len(list(db.entries.aggregate(pipeline=match + n_users))),
