@@ -15,7 +15,7 @@ api = Api(app)
 
 
 def ignore_case(s):
-    return re.compile(s, re.IGNORECASE)
+    return re.compile("^" + s + "$", re.IGNORECASE)
 
 
 n_conditions = [
@@ -299,12 +299,17 @@ class UserListAPI(Resource):
     def get(self):
         parser = reqparse.RequestParser()
         parser.add_argument("condition")
+        parser.add_argument("symptom")
         args = parser.parse_args()
 
         match = []
 
         if args.get("condition"):
             match.append({"$match": {"conditions": ignore_case(args.get("condition"))}})
+        if args.get("symptom"):
+            match.append({"$match": {"symptoms": ignore_case(args.get("symptom"))}})
+
+        print(match)
 
         return {
             "n_users": len(list(db.entries.aggregate(pipeline=match + n_users))),
