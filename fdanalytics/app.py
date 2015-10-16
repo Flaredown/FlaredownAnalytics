@@ -316,7 +316,7 @@ class UserAPI(Resource):
 api.add_resource(ConditionListAPI, "/analytics/api/v1.0/conditions/")
 
 api.add_resource(EntryListAPI, "/analytics/api/v1.0/entries/")
-api.add_resource(EntryAPI, "/analytics/api/v1.0/entries/<entry_id>/")
+api.add_resource(EntryAPI, "/analytics/api/v1.0/entries/<entry_id>")
 
 api.add_resource(SymptomListAPI, "/analytics/api/v1.0/symptoms/")
 
@@ -324,4 +324,4 @@ api.add_resource(TreatmentListAPI, "/analytics/api/v1.0/treatments/")
 api.add_resource(TreatmentAPI, "/analytics/api/v1.0/treatments/<treatment_name>")
 
 api.add_resource(UserListAPI, "/analytics/api/v1.0/users/")
-api.add_resource(UserAPI, "/analytics/api/v1.0/users/<user_id>/")
+api.add_resource(UserAPI, "/analytics/api/v1.0/users/<user_id>")
