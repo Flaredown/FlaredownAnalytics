@@ -1,7 +1,7 @@
 import re
 from bson.objectid import ObjectId
 from flask import Flask
-from flask_restful import Api, Resource, reqparse
+from flask_restful import Api, Resource, inputs, reqparse
 from werkzeug.contrib.fixers import ProxyFix
 from .common.db import connect
 
@@ -310,6 +310,7 @@ class UserListAPI(Resource):
         parser.add_argument("condition")
         parser.add_argument("symptom")
         parser.add_argument("treatment")
+        parser.add_argument("compare", type=inputs.boolean)
         args = parser.parse_args()
 
         match = []
@@ -320,6 +321,39 @@ class UserListAPI(Resource):
             match.append({"$match": {"symptoms": ignore_case(args.get("symptom"))}})
         if args.get("treatment"):
             match.append({"$match": {"treatments.name": ignore_case(args.get("treatment"))}})
+
+        if args.get("compare"):
+            group_by = {k: v for (k, v) in args.items() if v and k != "compare"}
+            return {
+                "n_users": {
+                    "groupBy": group_by,
+                    "values": len(list(db.entries.aggregate(pipeline=match + n_users)))
+                },
+                "n_conditions": {
+                    "groupBy": group_by,
+                    "values": list(db.entries.aggregate(pipeline=match + n_conditions))
+                },
+                "top_conditions": {
+                    "groupBy": group_by,
+                    "values": list(db.entries.aggregate(pipeline=match + top_conditions))
+                },
+                "n_symptoms": {
+                    "groupBy": group_by,
+                    "values": list(db.entries.aggregate(pipeline=match + n_symptoms))
+                },
+                "top_symptoms": {
+                    "groupBy": group_by,
+                    "values": list(db.entries.aggregate(pipeline=match + top_symptoms))
+                },
+                "n_treatments": {
+                    "groupBy": group_by,
+                    "values": list(db.entries.aggregate(pipeline=match + n_treatments))
+                },
+                "top_treatments": {
+                    "groupBy": group_by,
+                    "values": list(db.entries.aggregate(pipeline=match + top_treatments))
+                },
+            }
 
         return {
             "n_users": len(list(db.entries.aggregate(pipeline=match + n_users))),
