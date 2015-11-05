@@ -323,36 +323,68 @@ class UserListAPI(Resource):
             match.append({"$match": {"treatments.name": ignore_case(args.get("treatment"))}})
 
         if args.get("compare"):
-            group_by = {k: v for (k, v) in args.items() if v and k != "compare"}
+            complement = []
+
+            # right now this gets not(all) but we want not(any)
+
+            if args.get("condition"):
+                complement.append({"$match": {"conditions": {"$not": ignore_case(args.get("condition"))}}})
+            if args.get("symptom"):
+                complement.append({"$match": {"symptoms": {"$not": ignore_case(args.get("symptom"))}}})
+            if args.get("treatment"):
+                complement.append({"$match": {"treatments.name": {"$not": ignore_case(args.get("treatment"))}}})
+
+            print(complement)
+
+            group_by = [{k: v, "comparison": "eq"} for (k, v) in args.items() if v and k != "compare"]
+            group_by_complement = [{k: v, "comparison": "ne"} for (k, v) in args.items() if v and k != "compare"]
             return {
-                "n_users": {
-                    "groupBy": group_by,
-                    "values": len(list(db.entries.aggregate(pipeline=match + n_users)))
-                },
-                "n_conditions": {
-                    "groupBy": group_by,
-                    "values": list(db.entries.aggregate(pipeline=match + n_conditions))
-                },
-                "top_conditions": {
-                    "groupBy": group_by,
-                    "values": list(db.entries.aggregate(pipeline=match + top_conditions))
-                },
-                "n_symptoms": {
-                    "groupBy": group_by,
-                    "values": list(db.entries.aggregate(pipeline=match + n_symptoms))
-                },
-                "top_symptoms": {
-                    "groupBy": group_by,
-                    "values": list(db.entries.aggregate(pipeline=match + top_symptoms))
-                },
-                "n_treatments": {
-                    "groupBy": group_by,
-                    "values": list(db.entries.aggregate(pipeline=match + n_treatments))
-                },
-                "top_treatments": {
-                    "groupBy": group_by,
-                    "values": list(db.entries.aggregate(pipeline=match + top_treatments))
-                },
+                "n_users": [
+                    {
+                        "groupBy": group_by,
+                        "values": len(list(db.entries.aggregate(pipeline=match + n_users)))
+                    },
+                    {
+                        "groupBy": group_by_complement,
+                        "values": len(list(db.entries.aggregate(pipeline=complement + n_users)))
+                    }
+                ],
+                "n_conditions": [
+                    {
+                        "groupBy": group_by,
+                        "values": list(db.entries.aggregate(pipeline=match + n_conditions))
+                    }
+                ],
+                "top_conditions": [
+                    {
+                        "groupBy": group_by,
+                        "values": list(db.entries.aggregate(pipeline=match + top_conditions))
+                    }
+                ],
+                "n_symptoms": [
+                    {
+                        "groupBy": group_by,
+                        "values": list(db.entries.aggregate(pipeline=match + n_symptoms))
+                    }
+                ],
+                "top_symptoms": [
+                    {
+                        "groupBy": group_by,
+                        "values": list(db.entries.aggregate(pipeline=match + top_symptoms))
+                    }
+                ],
+                "n_treatments": [
+                    {
+                        "groupBy": group_by,
+                        "values": list(db.entries.aggregate(pipeline=match + n_treatments))
+                    }
+                ],
+                "top_treatments": [
+                    {
+                        "groupBy": group_by,
+                        "values": list(db.entries.aggregate(pipeline=match + top_treatments))
+                    }
+                ],
             }
 
         return {
