@@ -137,6 +137,9 @@ top_conditions = [
     },
     {
         "$limit": 10
+    },
+    {
+        "$project": {"_id": "$_id.condition", "count": "$count"}
     }
 ]
 
@@ -169,6 +172,9 @@ top_symptoms = [
     },
     {
         "$limit": 10
+    },
+    {
+        "$project": {"_id": "$_id.symptom", "count": "$count"}
     }
 ]
 
@@ -201,6 +207,9 @@ top_treatments = [
     },
     {
         "$limit": 10
+    },
+    {
+        "$project": {"_id": "$_id.treatment", "count": "$count"}
     }
 ]
 
@@ -313,7 +322,13 @@ class UserListAPI(Resource):
             match.append({"$match": {"treatments.name": ignore_case(args.get("treatment"))}})
 
         return {
-            "n_users": len(list(db.entries.aggregate(pipeline=match + n_users)))
+            "n_users": len(list(db.entries.aggregate(pipeline=match + n_users))),
+            "n_conditions": list(db.entries.aggregate(pipeline=match + n_conditions)),
+            "top_conditions": list(db.entries.aggregate(pipeline=match + top_conditions)),
+            "n_symptoms": list(db.entries.aggregate(pipeline=match + n_symptoms)),
+            "top_symptoms": list(db.entries.aggregate(pipeline=match + top_symptoms)),
+            "n_treatments": list(db.entries.aggregate(pipeline=match + n_treatments)),
+            "top_treatments": list(db.entries.aggregate(pipeline=match + top_treatments)),
         }
 
 
@@ -331,75 +346,6 @@ class UserAPI(Resource):
         }
 
 
-class UserConditionAPI(Resource):
-    def get(self):
-        parser = reqparse.RequestParser()
-        parser.add_argument("condition")
-        parser.add_argument("symptom")
-        parser.add_argument("treatment")
-        args = parser.parse_args()
-
-        match = []
-
-        if args.get("condition"):
-            match.append({"$match": {"conditions": ignore_case(args.get("condition"))}})
-        if args.get("symptom"):
-            match.append({"$match": {"symptoms": ignore_case(args.get("symptom"))}})
-        if args.get("treatment"):
-            match.append({"$match": {"treatments.name": ignore_case(args.get("treatment"))}})
-
-        return {
-            "n_conditions": list(db.entries.aggregate(pipeline=match + n_conditions)),
-            "top_conditions": list(db.entries.aggregate(pipeline=match + top_conditions))
-        }
-
-
-class UserSymptomAPI(Resource):
-    def get(self):
-        parser = reqparse.RequestParser()
-        parser.add_argument("condition")
-        parser.add_argument("symptom")
-        parser.add_argument("treatment")
-        args = parser.parse_args()
-
-        match = []
-
-        if args.get("condition"):
-            match.append({"$match": {"conditions": ignore_case(args.get("condition"))}})
-        if args.get("symptom"):
-            match.append({"$match": {"symptoms": ignore_case(args.get("symptom"))}})
-        if args.get("treatment"):
-            match.append({"$match": {"treatments.name": ignore_case(args.get("treatment"))}})
-
-        return {
-            "n_symptoms": list(db.entries.aggregate(pipeline=match + n_symptoms)),
-            "top_symptoms": list(db.entries.aggregate(pipeline=match + top_symptoms))
-        }
-
-
-class UserTreatmentAPI(Resource):
-    def get(self):
-        parser = reqparse.RequestParser()
-        parser.add_argument("condition")
-        parser.add_argument("symptom")
-        parser.add_argument("treatment")
-        args = parser.parse_args()
-
-        match = []
-
-        if args.get("condition"):
-            match.append({"$match": {"conditions": ignore_case(args.get("condition"))}})
-        if args.get("symptom"):
-            match.append({"$match": {"symptoms": ignore_case(args.get("symptom"))}})
-        if args.get("treatment"):
-            match.append({"$match": {"treatments.name": ignore_case(args.get("treatment"))}})
-
-        return {
-            "n_treatments": list(db.entries.aggregate(pipeline=match + n_treatments)),
-            "top_treatments": list(db.entries.aggregate(pipeline=match + top_treatments))
-        }
-
-
 api.add_resource(ConditionListAPI, "/analytics/api/v1.0/conditions/")
 
 api.add_resource(EntryListAPI, "/analytics/api/v1.0/entries/")
@@ -412,7 +358,3 @@ api.add_resource(TreatmentAPI, "/analytics/api/v1.0/treatments/<treatment_name>"
 
 api.add_resource(UserListAPI, "/analytics/api/v1.0/users/")
 api.add_resource(UserAPI, "/analytics/api/v1.0/users/<user_id>")
-
-api.add_resource(UserConditionAPI, "/analytics/api/v1.0/users/conditions/")
-api.add_resource(UserSymptomAPI, "/analytics/api/v1.0/users/symptoms/")
-api.add_resource(UserTreatmentAPI, "/analytics/api/v1.0/users/treatments/")
