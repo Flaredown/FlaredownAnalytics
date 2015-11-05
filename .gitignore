@@ -13,3 +13,4 @@ include
 dist
 
 spikes
+config.py
