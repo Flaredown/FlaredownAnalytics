@@ -322,21 +322,27 @@ class UserListAPI(Resource):
             match.append({"$match": {"treatments.name": ignore_case(args.get("treatment"))}})
 
         if args.get("compare"):
-            complement = []
 
-            # right now this gets not(all) but we want not(any)
+            and_not_queries = []
 
             if args.get("condition"):
-                complement.append({"$match": {"conditions": {"$not": ignore_case(args.get("condition"))}}})
+                and_not_queries.append({"conditions": {"$not": ignore_case(args.get("condition"))}})
             if args.get("symptom"):
-                complement.append({"$match": {"symptoms": {"$not": ignore_case(args.get("symptom"))}}})
+                and_not_queries.append({"symptoms": {"$not": ignore_case(args.get("symptom"))}})
             if args.get("treatment"):
-                complement.append({"$match": {"treatments.name": {"$not": ignore_case(args.get("treatment"))}}})
+                and_not_queries.append({"treatments.name": {"$not": ignore_case(args.get("treatment"))}})
 
-            print(complement)
+            complement = [{"$match": {"$or": and_not_queries}}]
 
-            group_by = [{k: v, "comparison": "eq"} for (k, v) in args.items() if v and k != "compare"]
-            group_by_complement = [{k: v, "comparison": "ne"} for (k, v) in args.items() if v and k != "compare"]
+            group_by = [{k: v, "comparison": "eq"}
+                        for (k, v) in args.items()
+                        if v and k != "compare"]
+            # should make it clear that the complement is ALL not matched by the main query
+            # demorgan's law: or(not(X), not(Y)) == not(and(X, Y))
+            group_by_complement = [{k: v, "comparison": "ne"}
+                                   for (k, v) in args.items()
+                                   if v and k != "compare"]
+
             return {
                 "n_users": [
                     {
