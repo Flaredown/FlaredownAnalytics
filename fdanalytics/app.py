@@ -1,5 +1,4 @@
 import re
-from bson.objectid import ObjectId
 from flask import Flask
 from flask_restful import Api, Resource, inputs, reqparse
 from werkzeug.contrib.fixers import ProxyFix
@@ -353,36 +352,60 @@ class UserListAPI(Resource):
                     {
                         "groupBy": group_by,
                         "values": list(db.entries.aggregate(pipeline=match + n_conditions))
+                    },
+                    {
+                        "groupBy": group_by_complement,
+                        "values": list(db.entries.aggregate(pipeline=complement + n_conditions))
                     }
                 ],
                 "top_conditions": [
                     {
                         "groupBy": group_by,
                         "values": list(db.entries.aggregate(pipeline=match + top_conditions))
+                    },
+                    {
+                        "groupBy": group_by_complement,
+                        "values": list(db.entries.aggregate(pipeline=complement + top_conditions))
                     }
                 ],
                 "n_symptoms": [
                     {
                         "groupBy": group_by,
                         "values": list(db.entries.aggregate(pipeline=match + n_symptoms))
+                    },
+                    {
+                        "groupBy": group_by_complement,
+                        "values": list(db.entries.aggregate(pipeline=complement + n_symptoms))
                     }
                 ],
                 "top_symptoms": [
                     {
                         "groupBy": group_by,
                         "values": list(db.entries.aggregate(pipeline=match + top_symptoms))
+                    },
+                    {
+                        "groupBy": group_by_complement,
+                        "values": list(db.entries.aggregate(pipeline=complement + top_symptoms))
                     }
                 ],
                 "n_treatments": [
                     {
                         "groupBy": group_by,
                         "values": list(db.entries.aggregate(pipeline=match + n_treatments))
+                    },
+                    {
+                        "groupBy": group_by_complement,
+                        "values": list(db.entries.aggregate(pipeline=complement + n_treatments))
                     }
                 ],
                 "top_treatments": [
                     {
                         "groupBy": group_by,
                         "values": list(db.entries.aggregate(pipeline=match + top_treatments))
+                    },
+                    {
+                        "groupBy": group_by_complement,
+                        "values": len(list(db.entries.aggregate(pipeline=complement + top_treatments)))
                     }
                 ],
             }
