@@ -5,7 +5,7 @@ from .common.db import configure_client, connect
 from .common.util import ignore_case
 from .resources.condition import ConditionListAPI
 from .resources.root import RootAPI
-# from .resources.segment import SegmentAPI
+from .resources.segment import SegmentAPI
 
 
 app = Flask(__name__)
@@ -457,7 +457,7 @@ api.add_resource(TreatmentAPI, "/analytics/api/v1.0/treatments/<treatment_name>"
 api.add_resource(UserListAPI, "/analytics/api/v1.0/users/")
 api.add_resource(UserAPI, "/analytics/api/v1.0/users/<user_id>")
 
-# api.add_resource(SegmentAPI, "/analytics/api/v1.0/segments")
+api.add_resource(SegmentAPI, "/analytics/api/v1.0/segments")
 
 app.register_blueprint(api_bp)
 
