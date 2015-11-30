@@ -1,19 +1,23 @@
-from flask import Flask, Blueprint
+from flask import Flask, Blueprint, g
 from flask_restful import Api, Resource, inputs, reqparse
 from werkzeug.contrib.fixers import ProxyFix
-from .common.db import connect
+from .common.db import configure_client, connect
 from .common.util import ignore_case
+from .resources.condition import ConditionListAPI
 from .resources.root import RootAPI
 # from .resources.segment import SegmentAPI
+
 
 app = Flask(__name__)
 app.config.from_pyfile("../config.py")
 app.wsgi_app = ProxyFix(app.wsgi_app)
 
-db = connect(app.config)
+client = configure_client(app.config)
+db = connect(client)
 
 api_bp = Blueprint("api", __name__)
 api = Api(api_bp)
+
 
 n_conditions = [
     {
@@ -226,11 +230,11 @@ def _safe_index(list, i, default_value=None):
     return el
 
 
-class ConditionListAPI(Resource):
-    def get(self):
-        return {
-            "all": db.entries.distinct("conditions")
-        }
+# class ConditionListAPI(Resource):
+#     def get(self):
+#         return {
+#             "all": db.entries.distinct("conditions")
+#         }
 
 
 class EntryListAPI(Resource):
@@ -456,3 +460,15 @@ api.add_resource(UserAPI, "/analytics/api/v1.0/users/<user_id>")
 # api.add_resource(SegmentAPI, "/analytics/api/v1.0/segments")
 
 app.register_blueprint(api_bp)
+
+
+@app.before_request
+def before_request():
+    g.db = connect(client)
+
+
+@app.teardown_request
+def teardown_request(exception):
+    db = getattr(g, "db", None)
+    if db is not None:
+        pass  # TODO: close connection

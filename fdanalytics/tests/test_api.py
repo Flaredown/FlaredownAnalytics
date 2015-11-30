@@ -18,3 +18,12 @@ class RootTest(FD_AnalyticsLiveServerTestCase):
     def test_get_returns_200(self):
         response = requests.get(self.url)
         self.assertEqual(response.status_code, 200)
+
+
+class ConditionListTest(FD_AnalyticsLiveServerTestCase):
+    def setUp(self):
+        self.url = self._namespace() + "/conditions"
+
+    def test_get_returns_200(self):
+        response = requests.get(self.url)
+        self.assertEqual(response.status_code, 200)

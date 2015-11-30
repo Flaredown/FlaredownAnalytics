@@ -2,7 +2,7 @@ import os
 from pymongo import MongoClient
 
 
-def connect(config):
+def configure_client(config):
     if os.environ.get("HEROKU"):
         client = MongoClient("mongodb://{}:{}@{}:{}/{}".format(
             os.environ.get("USER_ID"),
@@ -22,7 +22,8 @@ def connect(config):
             config["MONGO_HOST"],
             config["MONGO_PORT"],
             config["DB_NAME"]))
+    return client
 
-    db = client.get_default_database()
 
-    return db
+def connect(client):
+    return client.get_default_database()
