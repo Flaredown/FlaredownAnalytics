@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, Blueprint
 from flask_restful import Api, Resource, inputs, reqparse
 from werkzeug.contrib.fixers import ProxyFix
 from .common.db import connect
@@ -12,7 +12,8 @@ app.wsgi_app = ProxyFix(app.wsgi_app)
 
 db = connect(app.config)
 
-api = Api(app)
+api_bp = Blueprint("api", __name__)
+api = Api(api_bp)
 
 n_conditions = [
     {
@@ -453,3 +454,5 @@ api.add_resource(UserListAPI, "/analytics/api/v1.0/users/")
 api.add_resource(UserAPI, "/analytics/api/v1.0/users/<user_id>")
 
 # api.add_resource(SegmentAPI, "/analytics/api/v1.0/segments")
+
+app.register_blueprint(api_bp)
