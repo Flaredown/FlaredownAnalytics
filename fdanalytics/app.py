@@ -27,9 +27,10 @@ class HerokuConfig(Config):
 mongo = PyMongo()
 
 
-def create_app(config_filename):
+def create_app():
     app = Flask(__name__)
 
+    # this could be cleaner
     if os.environ.get("HEROKU"):
         app.config.from_object(HerokuConfig)
     else:
@@ -57,7 +58,7 @@ def create_app(config_filename):
     return app
 
 
-app = create_app("../config.py")
+app = create_app()
 
 
 @app.before_request
