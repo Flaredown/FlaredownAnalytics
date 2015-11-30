@@ -11,6 +11,7 @@ setup(
     packages=["fdanalytics"],
     install_requires=[
         "flask",
+        "flask_heroku"
         "flask_restful",
         "flask_testing",
         "pymongo"

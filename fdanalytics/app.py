@@ -1,5 +1,6 @@
 from flask import Flask, Blueprint, g
 from flask_restful import Api, Resource, inputs, reqparse
+from flask.ext.heroku import Heroku
 from werkzeug.contrib.fixers import ProxyFix
 from .common.db import configure_client, connect
 from .common.util import ignore_case
@@ -472,3 +473,5 @@ def teardown_request(exception):
     db = getattr(g, "db", None)
     if db is not None:
         pass  # TODO: close connection
+
+heroku = Heroku(app)
