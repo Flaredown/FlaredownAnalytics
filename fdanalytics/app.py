@@ -1,8 +1,9 @@
-import re
 from flask import Flask
 from flask_restful import Api, Resource, inputs, reqparse
 from werkzeug.contrib.fixers import ProxyFix
 from .common.db import connect
+from .common.util import ignore_case
+# from .resources.segment import SegmentAPI
 
 app = Flask(__name__)
 app.config.from_pyfile("../config.py")
@@ -11,11 +12,6 @@ app.wsgi_app = ProxyFix(app.wsgi_app)
 db = connect(app.config)
 
 api = Api(app)
-
-
-def ignore_case(s):
-    return re.compile("^" + s + "$", re.IGNORECASE)
-
 
 n_conditions = [
     {
@@ -453,3 +449,5 @@ api.add_resource(TreatmentAPI, "/analytics/api/v1.0/treatments/<treatment_name>"
 
 api.add_resource(UserListAPI, "/analytics/api/v1.0/users/")
 api.add_resource(UserAPI, "/analytics/api/v1.0/users/<user_id>")
+
+# api.add_resource(SegmentAPI, "/analytics/api/v1.0/segments")
