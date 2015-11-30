@@ -3,6 +3,7 @@ from flask_restful import Api, Resource, inputs, reqparse
 from werkzeug.contrib.fixers import ProxyFix
 from .common.db import connect
 from .common.util import ignore_case
+from .resources.root import RootAPI
 # from .resources.segment import SegmentAPI
 
 app = Flask(__name__)
@@ -436,6 +437,7 @@ class UserAPI(Resource):
             "last_entry_date": _safe_index(user_entries, -1, default_value={}).get("date"),
         }
 
+api.add_resource(RootAPI, "/analytics/api/v1.0")
 
 api.add_resource(ConditionListAPI, "/analytics/api/v1.0/conditions/")
 

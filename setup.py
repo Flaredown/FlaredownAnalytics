@@ -12,6 +12,7 @@ setup(
     install_requires=[
         "flask",
         "flask_restful",
+        "flask_testing",
         "pymongo"
     ],
     test_suite="nose.collector",
