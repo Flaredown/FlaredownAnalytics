@@ -1,6 +1,7 @@
 from flask import Flask, Blueprint, g
 from flask_restful import Api
 from flask.ext.heroku import Heroku
+from flask.ext.pymongo import PyMongo
 from werkzeug.contrib.fixers import ProxyFix
 from .common.db import configure_client, connect
 from .resources.root import RootAPI
@@ -11,39 +12,72 @@ from .resources.symptom import SymptomListAPI
 from .resources.treatment import TreatmentAPI, TreatmentListAPI
 from .resources.user import UserAPI
 
+# client = configure_client(app.config)
+# db = connect(client)
 
-app = Flask(__name__)
-app.config.from_pyfile("../config.py")
-app.wsgi_app = ProxyFix(app.wsgi_app)
+heroku = Heroku()
+mongo = PyMongo()
 
-client = configure_client(app.config)
-db = connect(client)
 
-api_bp = Blueprint("api", __name__)
-api = Api(api_bp)
+def create_app(config_filename):
+    app = Flask(__name__)
+    app.config.from_pyfile(config_filename)
+    app.wsgi_app = ProxyFix(app.wsgi_app)
 
-api.add_resource(RootAPI, "/analytics/api/v1.0")
+    api_bp = Blueprint("api", __name__)
+    api = Api(api_bp)
 
-api.add_resource(ConditionListAPI, "/analytics/api/v1.0/conditions/")
+    api.add_resource(RootAPI, "/analytics/api/v1.0")
+    api.add_resource(ConditionListAPI, "/analytics/api/v1.0/conditions/")
+    api.add_resource(EntryListAPI, "/analytics/api/v1.0/entries/")
+    api.add_resource(EntryAPI, "/analytics/api/v1.0/entries/<entry_id>")
+    api.add_resource(SymptomListAPI, "/analytics/api/v1.0/symptoms/")
+    api.add_resource(TreatmentListAPI, "/analytics/api/v1.0/treatments/")
+    api.add_resource(TreatmentAPI, "/analytics/api/v1.0/treatments/<treatment_name>")
+    api.add_resource(UserAPI, "/analytics/api/v1.0/users/<user_id>")
+    api.add_resource(SegmentAPI, "/analytics/api/v1.0/segments")
 
-api.add_resource(EntryListAPI, "/analytics/api/v1.0/entries/")
-api.add_resource(EntryAPI, "/analytics/api/v1.0/entries/<entry_id>")
+    app.register_blueprint(api_bp)
 
-api.add_resource(SymptomListAPI, "/analytics/api/v1.0/symptoms/")
+    heroku.init_app(app)
+    mongo.init_app(app)
 
-api.add_resource(TreatmentListAPI, "/analytics/api/v1.0/treatments/")
-api.add_resource(TreatmentAPI, "/analytics/api/v1.0/treatments/<treatment_name>")
+    return app
 
-api.add_resource(UserAPI, "/analytics/api/v1.0/users/<user_id>")
+app = create_app("../config.py")
 
-api.add_resource(SegmentAPI, "/analytics/api/v1.0/segments")
+# app = Flask(__name__)
+# app.config.from_pyfile("../config.py")
+# app.wsgi_app = ProxyFix(app.wsgi_app)
 
-app.register_blueprint(api_bp)
+# client = configure_client(app.config)
+# db = connect(client)
+
+# api_bp = Blueprint("api", __name__)
+# api = Api(api_bp)
+
+# api.add_resource(RootAPI, "/analytics/api/v1.0")
+
+# api.add_resource(ConditionListAPI, "/analytics/api/v1.0/conditions/")
+
+# api.add_resource(EntryListAPI, "/analytics/api/v1.0/entries/")
+# api.add_resource(EntryAPI, "/analytics/api/v1.0/entries/<entry_id>")
+
+# api.add_resource(SymptomListAPI, "/analytics/api/v1.0/symptoms/")
+
+# api.add_resource(TreatmentListAPI, "/analytics/api/v1.0/treatments/")
+# api.add_resource(TreatmentAPI, "/analytics/api/v1.0/treatments/<treatment_name>")
+
+# api.add_resource(UserAPI, "/analytics/api/v1.0/users/<user_id>")
+
+# api.add_resource(SegmentAPI, "/analytics/api/v1.0/segments")
+
+# app.register_blueprint(api_bp)
 
 
 @app.before_request
 def before_request():
-    g.db = connect(client)
+    g.db = mongo.db
 
 
 @app.teardown_request
@@ -51,5 +85,3 @@ def teardown_request(exception):
     db = getattr(g, "db", None)
     if db is not None:
         pass  # TODO: close connection
-
-heroku = Heroku(app)

@@ -14,7 +14,7 @@ setup(
         "flask_heroku",
         "flask_restful",
         "flask_testing",
-        "pymongo"
+        "flask_pymongo"
     ],
     test_suite="nose.collector",
     tests_require=["nose"],
