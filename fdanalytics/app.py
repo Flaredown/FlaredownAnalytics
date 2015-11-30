@@ -1,12 +1,13 @@
-from bson.objectid import ObjectId
 from flask import Flask, Blueprint, g
-from flask_restful import Api, Resource
+from flask_restful import Api
 from flask.ext.heroku import Heroku
 from werkzeug.contrib.fixers import ProxyFix
 from .common.db import configure_client, connect
-from .resources.condition import ConditionListAPI
 from .resources.root import RootAPI
+from .resources.condition import ConditionListAPI
+from .resources.entry import EntryAPI, EntryListAPI
 from .resources.segment import SegmentAPI
+from .resources.symptom import SymptomListAPI
 from .resources.treatment import TreatmentAPI, TreatmentListAPI
 from .resources.user import UserAPI
 
@@ -20,62 +21,6 @@ db = connect(client)
 
 api_bp = Blueprint("api", __name__)
 api = Api(api_bp)
-
-
-class EntryListAPI(Resource):
-    def get(self):
-        return [{
-            "_id": str(entry["_id"]),
-            "user_id": entry.get("user_id"),
-            "date": str(entry.get("date")),
-        } for entry in db.entries.find().sort("date", 1)]
-
-
-class EntryAPI(Resource):
-    def get(self, entry_id):
-        entry = db.entries.find_one({"_id": ObjectId(entry_id)})
-        # TODO: replace with ObjectId(entry_id) when we're not stuck with couch _ids
-        return {
-            "_id": str(entry["_id"]),
-            "user_id": entry["user_id"],
-            "date": str(entry["date"]),
-            "settings": entry.get("settings"),
-            "conditions": entry.get("conditions"),
-            "symptoms": entry.get("symptoms"),
-            "responses": [{
-                "name": response.get("name"),
-                "value": response.get("value"),
-                "catalog": response.get("catalog"),
-            } for response in entry.get("responses")],
-            "treatments": [{
-                "name": treatment.get("name"),
-                "quantity": treatment.get("quantity"),
-                "unit": treatment.get("unit"),
-                "repetition": treatment.get("repetition"),
-            } for treatment in entry.get("treatments")],
-        }
-
-
-class SymptomListAPI(Resource):
-    def get(self):
-        return {
-            "all": db.entries.distinct("symptoms")
-        }
-
-
-# class UserAPI(Resource):
-#     def get(self, user_id):
-#         user_entries = list(db.entries.find({"user_id": user_id})
-#                                       .sort("date", 1))
-
-#         return {
-#             "user_id": user_id,
-#             "settings": _safe_index(user_entries, -1, default_value={}).get("settings"),
-#             "num_entries": len(user_entries),
-#             "first_entry_date": _safe_index(user_entries, 0, default_value={}).get("date"),
-#             "last_entry_date": _safe_index(user_entries, -1, default_value={}).get("date"),
-#         }
-
 
 api.add_resource(RootAPI, "/analytics/api/v1.0")
 
