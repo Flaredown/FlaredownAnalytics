@@ -1,1 +1,1 @@
-web: gunicorn --log-file - fdanalytics.app:app
+web: gunicorn --log-file - fdanalytics.app:heroku
