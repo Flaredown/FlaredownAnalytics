@@ -55,6 +55,10 @@ class SegmentTest(FD_AnalyticsLiveServerTestCase):
         response = requests.get(self.url)
         self.assertEqual(response.status_code, 200)
 
+    def test_get_aborts_with_compare_and_no_other_arguments(self):
+        response = requests.get(self.url, data={"compare": True})
+        self.assertEqual(response.status_code, 400)
+
 
 class SymptomListTest(FD_AnalyticsLiveServerTestCase):
     def setUp(self):

@@ -1,4 +1,4 @@
-from flask import g
+from flask import g, abort
 from flask_restful import Resource, inputs, reqparse
 from ..common.util import ignore_case
 
@@ -233,6 +233,9 @@ class SegmentAPI(Resource):
                 and_not_queries.append({"symptoms": {"$not": ignore_case(args.get("symptom"))}})
             if args.get("treatment"):
                 and_not_queries.append({"treatments.name": {"$not": ignore_case(args.get("treatment"))}})
+
+            if len(and_not_queries) == 0:
+                abort(400, "Cannot compare segments without a condition, symptom, or treatment by which to segment.")
 
             complement = [{"$match": {"$or": and_not_queries}}]
 
