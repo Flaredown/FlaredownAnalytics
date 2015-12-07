@@ -69,6 +69,15 @@ class SymptomListTest(FD_AnalyticsLiveServerTestCase):
         self.assertEqual(response.status_code, 200)
 
 
+class TagTest(FD_AnalyticsLiveServerTestCase):
+    def setUp(self):
+        self.url = self._namespace() + "/tags/stress"
+
+    def test_get_returns_200(self):
+        response = requests.get(self.url)
+        self.assertEqual(response.status_code, 200)
+
+
 class TagListTest(FD_AnalyticsLiveServerTestCase):
     def setUp(self):
         self.url = self._namespace() + "/tags"
