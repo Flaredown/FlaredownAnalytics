@@ -8,6 +8,7 @@ from .resources.condition import ConditionListAPI
 from .resources.entry import EntryAPI, EntryListAPI
 from .resources.segment import SegmentAPI
 from .resources.symptom import SymptomListAPI
+from .resources.tag import TagListAPI
 from .resources.treatment import TreatmentAPI, TreatmentListAPI
 from .resources.user import UserAPI
 
@@ -46,6 +47,7 @@ def create_app():
     api.add_resource(EntryListAPI, "/analytics/api/v1.0/entries/")
     api.add_resource(EntryAPI, "/analytics/api/v1.0/entries/<entry_id>")
     api.add_resource(SymptomListAPI, "/analytics/api/v1.0/symptoms/")
+    api.add_resource(TagListAPI, "/analytics/api/v1.0/tags/")
     api.add_resource(TreatmentListAPI, "/analytics/api/v1.0/treatments/")
     api.add_resource(TreatmentAPI, "/analytics/api/v1.0/treatments/<treatment_name>")
     api.add_resource(UserAPI, "/analytics/api/v1.0/users/<user_id>")
