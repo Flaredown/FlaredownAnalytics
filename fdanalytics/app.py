@@ -4,6 +4,7 @@ from flask_restful import Api
 from flask.ext.pymongo import PyMongo
 from werkzeug.contrib.fixers import ProxyFix
 from .resources.root import RootAPI
+from .resources.catalog import CatalogAPI, CatalogListAPI
 from .resources.condition import ConditionListAPI
 from .resources.entry import EntryAPI, EntryListAPI
 from .resources.segment import SegmentAPI
@@ -43,6 +44,8 @@ def create_app():
     api = Api(api_bp)
 
     api.add_resource(RootAPI, "/analytics/api/v1.0")
+    api.add_resource(CatalogListAPI, "/analytics/api/v1.0/catalogs/")
+    api.add_resource(CatalogAPI, "/analytics/api/v1.0/catalogs/<catalog_name>")
     api.add_resource(ConditionListAPI, "/analytics/api/v1.0/conditions/")
     api.add_resource(EntryListAPI, "/analytics/api/v1.0/entries/")
     api.add_resource(EntryAPI, "/analytics/api/v1.0/entries/<entry_id>")

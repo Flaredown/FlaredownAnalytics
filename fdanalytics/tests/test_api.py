@@ -20,6 +20,24 @@ class RootTest(FD_AnalyticsLiveServerTestCase):
         self.assertEqual(response.status_code, 200)
 
 
+class CatalogTest(FD_AnalyticsLiveServerTestCase):
+    def setUp(self):
+        self.url = self._namespace() + "/catalogs/rapid3"
+
+    def test_get_returns_200(self):
+        response = requests.get(self.url)
+        self.assertEqual(response.status_code, 200)
+
+
+class CatalogListTest(FD_AnalyticsLiveServerTestCase):
+    def setUp(self):
+        self.url = self._namespace() + "/catalogs"
+
+    def test_get_returns_200(self):
+        response = requests.get(self.url)
+        self.assertEqual(response.status_code, 200)
+
+
 class ConditionListTest(FD_AnalyticsLiveServerTestCase):
     def setUp(self):
         self.url = self._namespace() + "/conditions"
