@@ -63,6 +63,36 @@ n_symptoms = [
     }
 ]
 
+n_tags = [
+    {
+        "$group": {
+            "_id": "$user_id",
+            "tags": {"$addToSet": "$tags"}
+        }
+    },
+    {
+        "$project": {
+            "nTags": {"$size": {"$ifNull": ["$tags", []]}}
+        }
+    },
+    {
+        "$project": {
+            "tagsLowerBound": {
+                "$subtract": ["$nTags", {"$mod": ["$nTags", 1]}]
+            }
+        }
+    },
+    {
+        "$group": {
+            "_id": "$tagsLowerBound",
+            "count": {"$sum": 1}
+        }
+    },
+    {
+        "$sort": {"_id": 1}
+    }
+]
+
 n_treatments = [
     {
         "$group": {
@@ -160,6 +190,41 @@ top_symptoms = [
     },
     {
         "$project": {"_id": "$_id.symptom", "count": "$count"}
+    }
+]
+
+top_tags = [
+    {
+        "$unwind": "$tags"
+    },
+    {
+        "$group": {
+            "_id": {
+                "user_id": "$user_id",
+            },
+            "count": {"$sum": 1},
+            "tags": {"$addToSet": "$tags"}
+        }
+    },
+    {
+        "$unwind": "$tags"
+    },
+    {
+        "$group": {
+            "_id": {
+                "tag": "$tags"
+            },
+            "count": {"$sum": 1}
+        }
+    },
+    {
+        "$sort": {"count": -1}
+    },
+    {
+        "$limit": 10
+    },
+    {
+        "$project": {"_id": "$_id.tag", "count": "$count"}
     }
 ]
 
@@ -300,6 +365,26 @@ class SegmentAPI(Resource):
                             "values": list(g.db.entries.aggregate(pipeline=complement + top_symptoms))
                         }
                     ],
+                    "n_tags": [
+                        {
+                            "groupBy": group_by,
+                            "values": list(g.db.entries.aggregate(pipeline=match + n_tags))
+                        },
+                        {
+                            "groupBy": group_by_complement,
+                            "values": list(g.db.entries.aggregate(pipeline=complement + n_tags))
+                        }
+                    ],
+                    "top_tags": [
+                        {
+                            "groupBy": group_by,
+                            "values": list(g.db.entries.aggregate(pipeline=match + top_tags))
+                        },
+                        {
+                            "groupBy": group_by_complement,
+                            "values": list(g.db.entries.aggregate(pipeline=complement + top_tags))
+                        }
+                    ],
                     "n_treatments": [
                         {
                             "groupBy": group_by,
@@ -317,7 +402,7 @@ class SegmentAPI(Resource):
                         },
                         {
                             "groupBy": group_by_complement,
-                            "values": len(list(g.db.entries.aggregate(pipeline=complement + top_treatments)))
+                            "values": list(g.db.entries.aggregate(pipeline=complement + top_treatments))
                         }
                     ],
                 }
@@ -330,6 +415,8 @@ class SegmentAPI(Resource):
                 "top_conditions": list(g.db.entries.aggregate(pipeline=match + top_conditions)),
                 "n_symptoms": list(g.db.entries.aggregate(pipeline=match + n_symptoms)),
                 "top_symptoms": list(g.db.entries.aggregate(pipeline=match + top_symptoms)),
+                "n_tags": list(g.db.entries.aggregate(pipeline=match + n_tags)),
+                "top_tags": list(g.db.entries.aggregate(pipeline=match + top_tags)),
                 "n_treatments": list(g.db.entries.aggregate(pipeline=match + n_treatments)),
                 "top_treatments": list(g.db.entries.aggregate(pipeline=match + top_treatments)),
             }
