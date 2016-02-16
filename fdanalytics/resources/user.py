@@ -12,6 +12,7 @@ class UserAPI(Resource):
             "user_id": user_id,
             "settings": safe_index(user_entries, -1, default_value={}).get("settings"),
             "num_entries": len(user_entries),
+            "entries": user_entries,
             "first_entry_date": safe_index(user_entries, 0, default_value={}).get("date"),
             "last_entry_date": safe_index(user_entries, -1, default_value={}).get("date"),
         }
